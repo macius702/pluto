@@ -117,6 +117,13 @@ pub enum HttpBody {
     Raw(Vec<u8>),
 }
 
+impl From<&str> for HttpBody {
+    fn from(s: &str) -> Self {
+        HttpBody::from(s.to_owned())
+    }
+}
+
+
 impl From<HttpBody> for Vec<u8> {
     fn from(b: HttpBody) -> Self {
         return match b {

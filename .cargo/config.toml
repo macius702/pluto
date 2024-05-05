@@ -1,3 +1,0 @@
-[alias]
-wasm = "build --target wasm32-unknown-unknown --workspace"
-wasm-optimized = "build --target wasm32-unknown-unknown --workspace --release"

@@ -50,5 +50,54 @@ pub(crate) fn setup() -> Router {
         })
     });
 
+    // Imlpement get for retrieving index.html
+    router.get("/index.html", false, |_req: HttpRequest| async move {
+        let mut headers = HashMap::new();
+        headers.insert("Content-Type".to_string(), "text/html".to_string());
+    
+        Ok(HttpResponse {
+            status_code: 200,
+            headers,
+            body: "<!DOCTYPE html>
+            <html>
+            <head>
+                <title>Sample Page</title>
+            </head>
+            <body>
+                <h1>Hello, World!</h1>
+            </body>
+            </html>".into(), 
+               })
+    });
+
+    // get for retrieving sample json
+    router.get("/sample.json", false, |_req: HttpRequest| async move {
+        Ok(HttpResponse {
+            status_code: 200,
+            headers: HashMap::new(),
+            body: json!({
+    "data": {
+        "users": [
+            {
+                "id": 1,
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+            },
+            {
+                "id": 2,
+                "name": "Jane Doe",
+                "email": "jane.doe@example.com"
+            }
+        ],
+        "pagination": {
+            "current_page": 1,
+            "total_pages": 10
+        }
+    }
+})
+            .into(),
+        })
+    });
+
     router
 }

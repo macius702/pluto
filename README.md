@@ -30,3 +30,24 @@ pluto = { git = "https://github.com/pu0238/pluto.git" }
 - Swagger integration
 - Response cache
 - Blob response
+
+
+## Useful commands
+
+You can use the following commands with `dfx`:
+
+- Get the canister ID: `dfx canister id [canisterName]`
+- Get the webserver port: `dfx info webserver-port`
+- Send a GET request to the canister: `curl http://[canisterId].localhost:[replicaPort]`
+- Send a POST request with JSON data to the canister: `curl -X POST -H "Content-Type: application/json" -d "{ \"hello\": \"world\" }" http://[canisterId].localhost:[replicaPort]`
+
+You can also use `curl` to send requests to specific URLs:
+
+- `curl http://bkyz2-fmaaa-aaaaa-qaaaq-cai.localhost:4943`
+- `curl "https://[canisterId].ic0.app"`
+- `curl -X GET http://bkyz2-fmaaa-aaaaa-qaaaq-cai.localhost:4943/sample.json`
+
+The following URLs are working:
+
+- `http://bkyz2-fmaaa-aaaaa-qaaaq-cai.localhost:4943/sample.json`
+- `http://bkyz2-fmaaa-aaaaa-qaaaq-cai.localhost:4943/index.html`
