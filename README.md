@@ -40,7 +40,8 @@ You can use the following commands with `dfx`:
 - Get the webserver port: `dfx info webserver-port`
 - Send a GET request to the canister: `curl http://[canisterId].localhost:[replicaPort]`
 - Send a POST request with JSON data to the canister: `curl -X POST -H "Content-Type: application/json" -d "{ \"hello\": \"world\" }" http://[canisterId].localhost:[replicaPort]`
-- `curl -X POST -H "Content-Type: application/json" -d "{ \"hello\": \"world\" }" "http://$(dfx canister id d_backend).localhost:$(dfx info webserver-port)"`
+- `curl -X POST -H "Content-Type: application/json" -d "{ \"hello\": \"world\" }" "http://$(dfx canister id http_server).localhost:$(dfx info webserver-port)"`
+- `curl -X GET -H "Content-Type: application/json" -d "{ \"hello\": \"world\" }" "http://$(dfx canister id http_server).localhost:$(dfx info webserver-port)/index.html"`
 
 You can also use `curl` to send requests to specific URLs:
 
