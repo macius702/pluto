@@ -1,3 +1,12 @@
+# How to reproduce 
+
+```
+git clone git@github.com:macius702/pluto.git
+cd pluto/examples
+./run.sh
+```
+
+
 # Pluto: Building Backend Services on Chain
 
 <a href="https://github.com/pu0238/pluto" target="_new">
