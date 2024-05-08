@@ -7,29 +7,35 @@ use pluto::{
 };
 use serde_json::{json, value};
 
+use once_cell::sync::Lazy;
+use std::sync::{Arc, Mutex};
 
-use std::cell::RefCell;
+use std::error::Error;
 
-thread_local! {
-    static WPISY: RefCell<Vec<String>> = RefCell::default();
+
+static WPISY: Lazy<Arc<Mutex<Vec<String>>>> = Lazy::new(|| Arc::new(Mutex::new(Vec::new())));
+
+
+fn dodaj_wpis(wpis: String) -> Result<(), Box<dyn Error>> {
+    let mut wpisy = WPISY.lock().unwrap();
+    wpisy.push(wpis);
+    Ok(())
 }
 
-fn greet(name: String) -> String {
-    format!("Hello, {}!", name)
+fn pobierz_wpisy() -> Vec<String> {
+    ic_cdk::println!("[pobierz_wpisy] Entering function");
+    ic_cdk::println!("[pobierz_wpisy] WPISY before lock: {:?}", *WPISY);
+    let result = {
+        let wpisy = WPISY.lock().unwrap();
+        ic_cdk::println!("[pobierz_wpisy] WPISY after lock: {:?}", *wpisy);
+        let clone = wpisy.clone();
+        ic_cdk::println!("[pobierz_wpisy] WPISY after clone: {:?}", *wpisy);
+        clone
+    };
+    ic_cdk::println!("[pobierz_wpisy] WPISY after unlock: {:?}", *WPISY);
+    ic_cdk::println!("[pobierz_wpisy] Leaving function");
+    result
 }
-
-fn dodaj_wpis(wpis: String) {
-    WPISY.with(|wpisy| {
-        let mut mutable_wpisy = wpisy.borrow_mut();
-        mutable_wpisy.push(wpis);
-    });
-}
-
-fn pobierz_wpisy() -> Vec<String>{
-    WPISY.with(|wpisy| wpisy.borrow().clone())
-}
-
-
 
 pub(crate) fn setup() -> Router {
 
@@ -53,25 +59,31 @@ pub(crate) fn setup() -> Router {
     });
 
 
-    router.post("/dodaj_wpis/:value", false, |req: HttpRequest| async move {
+    router.post("/dodaj_wpis/:value", true, |req: HttpRequest| async move {
+        ic_cdk::println!("[POST /dodaj_wpis/:value] Entering handler");
         let received_body: Result<String, HttpResponse> = String::from_utf8(req.body)
             .map_err(|_| HttpServe::internal_server_error().unwrap_err());
         if let Some(val) = req.params.get("value") {
+            ic_cdk::println!("[POST /dodaj_wpis/:value] Received value: {}", val);
             dodaj_wpis(val.to_string());
-            Ok(HttpResponse {
+            ic_cdk::println!("[POST /dodaj_wpis/:value] Added entry: {}", val);
+            let response = Ok(HttpResponse {
                 status_code: 200,
                 headers: HashMap::new(),
                 body: json!({
                     "statusCode": 200,
                     "message": "Hello World from POST",
                     "paramValue": val.to_string(),
-                    "receivedBody": received_body?
+                    "receivedBody": received_body?,
+                    "collection": pobierz_wpisy()
                 })
                 .into(),
-            })
+            });
+            ic_cdk::println!("[POST /dodaj_wpis/:value] Returning response: {:?}", response);
+            response
         } else {
             // Handle the case when "value" is not present in the params
-            Err(HttpResponse {
+            let error_response = Err(HttpResponse {
                 status_code: 400,
                 headers: HashMap::new(),
                 body: json!({
@@ -80,14 +92,14 @@ pub(crate) fn setup() -> Router {
                     "error": "Value not found in params"
                 })
                 .into(),
-            }
-
-            )
-
+            });
+            ic_cdk::println!("[POST /dodaj_wpis/:value] Returning error response: {:?}", error_response);
+            error_response
         }    
     });
     router.get("/", false, |_req: HttpRequest| async move {
-        Ok(HttpResponse {
+        ic_cdk::println!("[GET /] Entering handler");
+        let response = Ok(HttpResponse {
             status_code: 200,
             headers: HashMap::new(),
             body: json!({
@@ -95,23 +107,29 @@ pub(crate) fn setup() -> Router {
                 "message": "Hello World from GET",
             })
             .into(),
-        })
+        });
+        ic_cdk::println!("[GET /] Returning response: {:?}", response);
+        response
     });
 
 
     router.get("/pobierz_wpisy", false, |_req: HttpRequest| async move {
-        Ok(HttpResponse {
+        ic_cdk::println!("[GET /pobierz_wpisy] Entering handler");
+        let entries = pobierz_wpisy();
+        ic_cdk::println!("[GET /pobierz_wpisy] Retrieved entries: {:?}", entries);
+        let response = Ok(HttpResponse {
             status_code: 200,
             headers: HashMap::new(),
             body: json!({
                 "statusCode": 200,
                 "message": "Hello World from GET /pobierz_wpisy",
-                "body": pobierz_wpisy()
+                "body": entries
             })
             .into(),
-        })
+        });
+        ic_cdk::println!("[GET /pobierz_wpisy] Returning response: {:?}", response);
+        response
     });
-
     // Imlpement get for retrieving index.html
     router.get("/index.html", false, |_req: HttpRequest| async move {
         let mut headers = HashMap::new();
